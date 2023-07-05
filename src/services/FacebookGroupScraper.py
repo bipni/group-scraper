@@ -1,43 +1,27 @@
 import pandas as pd
 import datetime
 import facebook_scraper as fs
-import os
-from os.path import exists
+import fs as os
 import csv
 import getpass
 
 
 class FacebookGroupScraper:
     def get_facebook_group_details(self, group_id: str, name_of_cookies_file: str, cookies_file, page_count: int = 1):
-        os_name = os.name
-        os_user = getpass.getuser()
-
-        # for ubuntu
-        if os_name == 'posix':
-            base_path = f'/home/{os_user}/Documents/scraper-files'
-        # for windows
-        elif os_name == 'nt':
-            base_path = f'C:/Users/{os_user}/Documents/scraper-files'
-        else:
-            pass
-
-        if not exists(base_path):
-            os.makedirs(base_path)
-
         if cookies_file:
-            cookies_file.save(base_path + '/' + name_of_cookies_file)
+            cookies_file.save(name_of_cookies_file)
 
         details = []
 
         # initialize name of csv file
-        name_of_posts_csv = base_path + '/' + group_id + '.csv'
+        name_of_posts_csv = group_id + '.csv'
 
         # Get Posts
 
         # Get date filter from CSV file
 
         # check if csv file exists and deduce the earliest time checkpoint for posts to be scraped
-        if exists(name_of_posts_csv):
+        if os.existsSync(name_of_posts_csv):
             # ingest saved data
             df = pd.read_csv(name_of_posts_csv,
                              header=0)
@@ -89,7 +73,7 @@ class FacebookGroupScraper:
         # run a for loop where the we loop through every post and append it to the empty list
         for post in fs.get_posts(group=group_id,
                                  #  credentials=(f'{email}' ,f'{password}'),
-                                 cookies=base_path + '/' + name_of_cookies_file,
+                                 cookies=name_of_cookies_file,
                                  pages=page_count):
 
             # ignore the posts that were before the earliest post saved
@@ -104,7 +88,7 @@ class FacebookGroupScraper:
                 for row in fs.get_posts(
                     post_urls=[post['post_url']],
                     # credentials=(f'{email}' ,f'{password}'),
-                    cookies=base_path + '/' + name_of_cookies_file,
+                    cookies=name_of_cookies_file,
                     options={"comments": MAX_COMMENTS,
                              "reactors": True, "progress": True}
                 ):
@@ -128,7 +112,7 @@ class FacebookGroupScraper:
                     # all_comments_and_replies.append(copy_dict)
 
                     # if CSV file exists, ignore headers and only add rows
-                    if exists(name_of_posts_csv):
+                    if os.existsSync(name_of_posts_csv):
                         with open(name_of_posts_csv, 'a', newline='', encoding="utf-8") as f:
                             writer = csv.DictWriter(
                                 f, fieldnames=copy_dict.keys())
